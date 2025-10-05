@@ -1,0 +1,460 @@
+<!--
+Package Tracker — Single-file HTML (HTML + CSS + JS)
+Updated: Adds mock Login/Signup (name, email, password, confirm password) and
+keeps tracking details hidden until: 1) user logs in (mock) and 2) enters an ID and clicks Track.
+
+Behavior:
+- Signup & Login are fully mocked (no server, no localStorage persistence).
+- After successful login, user sees the tracker input. The status card & timeline
+  remain hidden until a Track action returns results from the mock API.
+- You can replace your previous file with this one (save as tracker.html).
+
+Instructions: Save as `tracker.html` and open in a browser. No server required.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ParcelPulse — Package Tracker (Auth + Mock)</title>
+  <meta name="description" content="ParcelPulse mock package tracker with timeline and mock API and login/signup" />
+  <style>
+    :root{
+      --bg1: #071026;
+      --bg2: #071029;
+      --accent: #7de3ff;
+      --accent2: #a07cff;
+      --muted: #98a0b3;
+      --success: #39d98a;
+      --danger: #ff6b6b;
+      --card-radius: 12px;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;padding:28px;background: radial-gradient(1200px 400px at 10% 10%, rgba(160,124,255,0.06), transparent),
+             linear-gradient(180deg,var(--bg1),var(--bg2));color:#e8eef8;-webkit-font-smoothing:antialiased;display:flex;align-items:center;justify-content:center;
+    }
+
+    .container{width:100%;max-width:1100px;display:grid;grid-template-columns:420px 1fr;gap:28px}
+    .panel{background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));padding:22px;border-radius:16px;box-shadow:0 10px 40px rgba(3,6,20,0.6)}
+
+    /* Auth styles */
+    .auth{display:flex;flex-direction:column;gap:12px}
+    .logo{width:62px;height:62px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;color:#042033;font-weight:800}
+    .auth h2{margin:0;font-size:20px}
+    .auth .muted{color:var(--muted);font-size:13px}
+
+    label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+    input[type='email'], input[type='password'], input[type='text']{width:100%;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+    .row{display:flex;gap:10px}
+    .btn{background:linear-gradient(90deg,var(--accent),var(--accent2));border:none;padding:10px 14px;border-radius:10px;color:#042033;font-weight:700;cursor:pointer}
+    .ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:10px;border-radius:10px;color:var(--muted);cursor:pointer}
+
+    .links{display:flex;gap:10px;font-size:13px}
+
+    /* Tracker styles (right column) */
+    .hero{display:flex;justify-content:space-between;align-items:center;gap:18px}
+    .parcel-illus{width:76px;height:56px;border-radius:12px;background:linear-gradient(90deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;color:#042033;font-weight:800}
+
+    .search{display:flex;gap:10px;margin-top:12px}
+    .search input{flex:1;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);background:transparent}
+
+    .status-card{margin-top:18px;padding:16px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03)}
+    .status-top{display:flex;align-items:center;justify-content:space-between}
+    .status-badge{padding:8px 12px;border-radius:12px;font-weight:700}
+    .status-badge.shipped{color:var(--accent)}
+    .status-badge.intransit{color:var(--accent2)}
+    .status-badge.delivered{color:var(--success)}
+    .progress{position:relative;height:10px;border-radius:999px;background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));overflow:hidden;margin-top:12px}
+    .progress > i{position:absolute;left:0;top:0;height:100%;display:block;border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0%;transition:width 700ms ease}
+    .meta-list{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;color:var(--muted)}
+
+    .timeline{margin-top:14px;padding:18px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);border:1px solid rgba(255,255,255,0.03)}
+    .events{display:flex;flex-direction:column;gap:12px}
+    .event{display:grid;grid-template-columns:48px 1fr;gap:12px;align-items:start}
+    .dot{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.02)}
+
+    .empty{padding:18px;border-radius:10px;border:1px dashed rgba(255,255,255,0.03);color:var(--muted);text-align:center}
+
+    .small{font-size:13px;color:var(--muted)}
+
+    /* hide sections */
+    .hidden{display:none}
+
+    /* responsive */
+    @media (max-width:980px){.container{grid-template-columns:1fr}.panel{order:2}.right{order:1}}
+
+  </style>
+</head>
+<body>
+  <main class="container" role="main">
+
+    <!-- LEFT: Auth panel -->
+    <section class="panel" aria-label="Authentication">
+      <div class="auth" id="authArea">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div class="logo">PP</div>
+          <div>
+            <h2>ParcelPulse</h2>
+            <div class="small">Securely view mock tracking details</div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button id="tabLogin" class="ghost">Login</button>
+          <button id="tabSignup" class="ghost">Sign up</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="loginForm" class="auth-form" style="margin-top:14px">
+          <div>
+            <label for="loginEmail">Email</label>
+            <input id="loginEmail" type="email" required placeholder="you@example.com" />
+          </div>
+          <div style="margin-top:10px">
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" type="password" required placeholder="••••••••" />
+          </div>
+          <div style="display:flex;gap:10px;margin-top:12px">
+            <button type="button" id="doLogin" class="btn">Login</button>
+            <button type="button" id="demoLogin" class="ghost">Demo</button>
+          </div>
+          <div id="loginMsg" class="small" style="margin-top:8px"></div>
+        </form>
+
+        <!-- Signup Form -->
+        <form id="signupForm" class="auth-form hidden" style="margin-top:14px">
+          <div>
+            <label for="signupName">Full name</label>
+            <input id="signupName" type="text" required placeholder="Your name" />
+          </div>
+          <div style="margin-top:10px">
+            <label for="signupEmail">Email</label>
+            <input id="signupEmail" type="email" required placeholder="you@example.com" />
+          </div>
+          <div style="margin-top:10px">
+            <label for="signupPassword">Password</label>
+            <input id="signupPassword" type="password" required placeholder="Choose a password" />
+          </div>
+          <div style="margin-top:10px">
+            <label for="signupConfirm">Confirm password</label>
+            <input id="signupConfirm" type="password" required placeholder="Re-type password" />
+          </div>
+          <div style="display:flex;gap:10px;margin-top:12px">
+            <button type="button" id="doSignup" class="btn">Create account</button>
+            <button type="button" id="toLogin" class="ghost">Back to login</button>
+          </div>
+          <div id="signupMsg" class="small" style="margin-top:8px"></div>
+        </form>
+
+        <div style="margin-top:18px;font-size:13px;color:var(--muted)">This implementation is <strong>mock</strong> — credentials are validated in-memory only and are not persisted.
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT: Tracker (hidden until login) -->
+    <section class="panel right" id="trackerPanel">
+      <div class="hero">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div class="parcel-illus">📫</div>
+          <div>
+            <h2 id="heroTitle">Welcome to ParcelPulse</h2>
+            <div id="heroSub" class="small">Log in to begin tracking parcels.</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="small">Signed in as</div>
+          <div id="userEmail" style="font-weight:800">—</div>
+          <div style="margin-top:8px"><button id="logoutBtn" class="ghost">Logout</button></div>
+        </div>
+      </div>
+
+      <!-- Search only visible after login; details remain hidden until Track returns data -->
+      <div id="trackerArea" class="hidden">
+        <div class="search" style="margin-top:14px">
+          <input id="tracking-input" type="text" placeholder="Enter tracking ID (e.g. PP-1029-AX)" aria-label="Tracking ID" />
+          <button id="track-btn" class="btn">Track</button>
+        </div>
+        <div class="small" style="margin-top:8px;color:var(--muted)">Try: <code>PP-1029-AX</code> or <code>PP-777-DEL</code> — or any text for a mocked response.</div>
+
+        <!-- Hidden until a successful Track -->
+        <div id="results" class="hidden">
+          <div id="statusCard" class="status-card">
+            <div class="status-top">
+              <div style="display:flex;gap:12px;align-items:center">
+                <div style="width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,#0b2430,#072033);display:flex;align-items:center;justify-content:center;">📦</div>
+                <div>
+                  <div id="statusTitle" style="font-weight:800">—</div>
+                  <div id="statusSubtitle" style="font-size:13px;color:var(--muted);margin-top:4px">—</div>
+                </div>
+              </div>
+              <div id="statusBadge" class="status-badge shipped">—</div>
+            </div>
+
+            <div class="progress" aria-hidden="false" title="progress">
+              <i id="progressBar"></i>
+            </div>
+
+            <div class="meta-list" id="metaList">
+              <div>Tracking ID: <strong id="metaId">—</strong></div>
+              <div>Last seen: <strong id="metaLast">—</strong></div>
+              <div>Location: <strong id="metaLoc">—</strong></div>
+              <div>Est. Delivery: <strong id="metaEta">—</strong></div>
+            </div>
+          </div>
+
+          <div class="timeline">
+            <h3 style="margin:0 0 10px 0">Tracking Timeline</h3>
+            <div id="events" class="events empty">No events yet</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shown when not logged in: a subtle prompt -->
+      <div id="notLogged" style="margin-top:18px" class="small">Log in on the left to access the tracker.</div>
+
+    </section>
+
+  </main>
+
+  <script>
+    /* -----------------------------
+       Mock auth (in-memory)
+       ----------------------------- */
+    const users = [
+      // demo user
+      {name:'Demo User', email:'demo@parcelpulse.test', password:'demo123'}
+    ];
+    let currentUser = null; // stays null across refresh (mock)
+
+    // DOM refs for auth
+    const tabLogin = document.getElementById('tabLogin');
+    const tabSignup = document.getElementById('tabSignup');
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    const doLogin = document.getElementById('doLogin');
+    const demoLogin = document.getElementById('demoLogin');
+    const doSignup = document.getElementById('doSignup');
+    const toLogin = document.getElementById('toLogin');
+    const loginMsg = document.getElementById('loginMsg');
+    const signupMsg = document.getElementById('signupMsg');
+
+    // tracking panel refs
+    const trackerPanel = document.getElementById('trackerPanel');
+    const trackerArea = document.getElementById('trackerArea');
+    const results = document.getElementById('results');
+    const notLogged = document.getElementById('notLogged');
+    const userEmail = document.getElementById('userEmail');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    // Basic tab actions
+    tabLogin.addEventListener('click', ()=>{ loginForm.classList.remove('hidden'); signupForm.classList.add('hidden'); loginMsg.textContent=''; signupMsg.textContent=''; });
+    tabSignup.addEventListener('click', ()=>{ signupForm.classList.remove('hidden'); loginForm.classList.add('hidden'); loginMsg.textContent=''; signupMsg.textContent=''; });
+    toLogin.addEventListener('click', ()=>{ signupForm.classList.add('hidden'); loginForm.classList.remove('hidden'); });
+
+    // utility: simple email regex
+    function validEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+
+    // Signup (mock)
+    doSignup.addEventListener('click', ()=>{
+      const name = document.getElementById('signupName').value.trim();
+      const email = document.getElementById('signupEmail').value.trim().toLowerCase();
+      const pw = document.getElementById('signupPassword').value;
+      const cpw = document.getElementById('signupConfirm').value;
+      signupMsg.style.color = '';
+      if(!name || !email || !pw || !cpw){ signupMsg.textContent = 'Please fill all fields.'; signupMsg.style.color='var(--danger)'; return; }
+      if(!validEmail(email)){ signupMsg.textContent = 'Please enter a valid email.'; signupMsg.style.color='var(--danger)'; return; }
+      if(pw.length < 5){ signupMsg.textContent = 'Password should be at least 5 characters.'; signupMsg.style.color='var(--danger)'; return; }
+      if(pw !== cpw){ signupMsg.textContent = 'Passwords do not match.'; signupMsg.style.color='var(--danger)'; return; }
+      if(users.some(u=>u.email === email)){ signupMsg.textContent = 'An account with this email already exists.'; signupMsg.style.color='var(--danger)'; return; }
+      users.push({name, email, password: pw});
+      signupMsg.textContent = 'Account created. You can log in now.'; signupMsg.style.color='var(--success)';
+      // switch to login
+      setTimeout(()=>{ signupForm.classList.add('hidden'); loginForm.classList.remove('hidden'); }, 900);
+    });
+
+    // Login (mock)
+    doLogin.addEventListener('click', ()=>{
+      const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+      const pw = document.getElementById('loginPassword').value;
+      loginMsg.style.color='';
+      if(!email || !pw){ loginMsg.textContent='Enter email and password.'; loginMsg.style.color='var(--danger)'; return; }
+      const found = users.find(u=>u.email === email && u.password === pw);
+      if(!found){ loginMsg.textContent='Invalid credentials.'; loginMsg.style.color='var(--danger)'; return; }
+      // success
+      currentUser = found; loginMsg.textContent = '';
+      onLoginSuccess();
+    });
+
+    demoLogin.addEventListener('click', ()=>{
+      // log in demo user
+      currentUser = users[0];
+      onLoginSuccess();
+    });
+
+    logoutBtn.addEventListener('click', ()=>{
+      currentUser = null;
+      // hide tracker
+      trackerArea.classList.add('hidden');
+      results.classList.add('hidden');
+      notLogged.classList.remove('hidden');
+      userEmail.textContent = '—';
+      heroTitle.textContent = 'Welcome to ParcelPulse';
+      heroSub.textContent = 'Log in to begin tracking parcels.';
+    });
+
+    function onLoginSuccess(){
+      // show tracker area
+      trackerArea.classList.remove('hidden');
+      notLogged.classList.add('hidden');
+      userEmail.textContent = currentUser.email;
+      heroTitle.textContent = `Hello, ${currentUser.name || currentUser.email}`;
+      heroSub.textContent = 'Enter a tracking ID and press Track.';
+      // clear forms
+      document.getElementById('loginEmail').value = '';
+      document.getElementById('loginPassword').value = '';
+      document.getElementById('signupName').value = '';
+      document.getElementById('signupEmail').value = '';
+      document.getElementById('signupPassword').value = '';
+      document.getElementById('signupConfirm').value = '';
+    }
+
+    /* -----------------------------
+       Mock tracking API and UI logic
+       ----------------------------- */
+    const MOCK_DB = {
+      'PP-1029-AX': {
+        id: 'PP-1029-AX', recipient: 'Asha Kapoor', eta: 'Oct 8, 2025', last_location: 'Mumbai, IN', status: 'In Transit', progress: 50,
+        events: [
+          {time:'2025-10-01 09:23', loc:'Pune, IN', status:'Ordered', note:'Order received by seller'},
+          {time:'2025-10-02 14:50', loc:'Pune, IN', status:'Packed', note:'Package prepared'},
+          {time:'2025-10-03 07:30', loc:'Mumbai, IN', status:'Shipped', note:'Shipped from origin'},
+          {time:'2025-10-04 18:12', loc:'Mumbai, IN', status:'In Transit', note:'Arrived at sorting center'},
+        ]
+      },
+      'PP-777-DEL': {
+        id: 'PP-777-DEL', recipient: 'Rahul Singh', eta: 'Sep 30, 2025', last_location: 'Bengaluru, IN', status: 'Delivered', progress: 100,
+        events: [
+          {time:'2025-09-25 08:10', loc:'Bengaluru, IN', status:'Ordered', note:'Order confirmed'},
+          {time:'2025-09-26 11:22', loc:'Bengaluru, IN', status:'Packed', note:'Ready for dispatch'},
+          {time:'2025-09-27 06:40', loc:'Bengaluru, IN', status:'Shipped', note:'Handed to courier'},
+          {time:'2025-09-28 12:10', loc:'Bengaluru, IN', status:'Out for Delivery', note:'Courier on the way'},
+          {time:'2025-09-28 15:35', loc:'Bengaluru, IN', status:'Delivered', note:'Left with recipient'},
+        ]
+      }
+    };
+
+    function fetchTracking(id){
+      // mock network with small delay and return data only after Track clicked
+      return new Promise((resolve)=>{
+        const delay = 600 + Math.random()*700;
+        setTimeout(()=>{
+          const key = id.trim().toUpperCase();
+          if(MOCK_DB[key]){
+            resolve(JSON.parse(JSON.stringify(MOCK_DB[key])));
+          } else {
+            // create random mock if user provided an ID
+            const statuses = ['Ordered','Packed','Shipped','In Transit','Out for Delivery','Delivered'];
+            const idx = Math.floor(Math.random() * (statuses.length-1));
+            const now = Date.now();
+            const rv = {id: key, recipient:'Valued Customer', eta: new Date(now + (2+Math.floor(Math.random()*6))*24*3600*1000).toLocaleDateString('en-GB',{year:'numeric',month:'short',day:'numeric'}), last_location:['Delhi, IN','Chennai, IN','Kolkata, IN'][Math.floor(Math.random()*3)], status: statuses[idx+1] || 'In Transit', progress: Math.min(95, 10 + (idx*18)), events: [] };
+            for(let i=0;i<=idx;i++){ const t = new Date(now - (idx-i+1)*24*60*60*1000); rv.events.push({time: t.toISOString().slice(0,16).replace('T',' '), loc: rv.last_location, status: statuses[i], note: statuses[i] + ' — mock event'}); }
+            resolve(rv);
+          }
+        }, delay);
+      });
+    }
+
+    // DOM refs for tracking UI
+    const input = document.getElementById('tracking-input');
+    const btn = document.getElementById('track-btn');
+
+    const statusTitle = document.getElementById('statusTitle');
+    const statusSubtitle = document.getElementById('statusSubtitle');
+    const statusBadge = document.getElementById('statusBadge');
+    const metaId = document.getElementById('metaId');
+    const metaLast = document.getElementById('metaLast');
+    const metaLoc = document.getElementById('metaLoc');
+    const metaEta = document.getElementById('metaEta');
+    const progressBar = document.getElementById('progressBar');
+    const eventsEl = document.getElementById('events');
+    const overview = document.getElementById('heroSub');
+
+    function setStatus(data){
+      // reveal results container
+      results.classList.remove('hidden');
+
+      statusTitle.textContent = data.recipient || 'Unknown recipient';
+      statusSubtitle.textContent = `${data.status} — Last seen: ${data.last_location}`;
+      metaId.textContent = data.id || '—';
+      metaLast.textContent = data.events && data.events.length ? data.events[data.events.length-1].time : '—';
+      metaLoc.textContent = data.last_location || '—';
+      metaEta.textContent = data.eta || '—';
+      overview.textContent = `${data.status} • ${data.last_location} • ETA ${data.eta}`;
+
+      // progress
+      progressBar.style.width = (data.progress || 0) + '%';
+
+      // badge style
+      statusBadge.className = 'status-badge';
+      const s = (data.status || '').toLowerCase();
+      if(s.includes('delivered')){ statusBadge.classList.add('delivered'); statusBadge.textContent = 'Delivered'; }
+      else if(s.includes('in transit') || s.includes('shipped') || s.includes('out for')){ statusBadge.classList.add('intransit'); statusBadge.textContent = data.status; }
+      else { statusBadge.classList.add('shipped'); statusBadge.textContent = data.status || 'Info'; }
+
+      renderEvents(data.events || []);
+    }
+
+    function renderEvents(evts){
+      if(!evts || evts.length === 0){ eventsEl.classList.add('empty'); eventsEl.innerHTML = '<div class="empty">No tracking events yet</div>'; return; }
+      eventsEl.classList.remove('empty'); eventsEl.innerHTML = '';
+      const sorted = evts.slice().reverse();
+      sorted.forEach((e,i)=>{
+        const node = document.createElement('div'); node.className='event';
+        const dot = document.createElement('div'); dot.className='dot' + (i===0? ' completed':''); dot.innerHTML = i===0? '✅' : '⏺';
+        const content = document.createElement('div'); const h = document.createElement('h4'); h.textContent = e.status; const p = document.createElement('p'); p.textContent = `${e.time} — ${e.loc} — ${e.note || ''}`; p.style.margin='4px 0 0 0'; p.style.color='var(--muted)'; p.style.fontSize='13px';
+        content.appendChild(h); content.appendChild(p); node.appendChild(dot); node.appendChild(content); eventsEl.appendChild(node);
+      });
+    }
+
+    function showLoading(id){
+      // keep results hidden until fetch completes; but show brief loading states inside hero
+      overview.textContent = `Looking up ${id}...`;
+    }
+
+    function showError(msg){
+      results.classList.remove('hidden');
+      statusTitle.textContent = 'Not found';
+      statusSubtitle.textContent = msg || 'Could not find tracking info.';
+      statusBadge.textContent = '—';
+      progressBar.style.width = '0%';
+      eventsEl.classList.add('empty'); eventsEl.innerHTML = '<div class="empty">No events available</div>';
+      overview.textContent = 'No results';
+    }
+
+    async function track(){
+      if(!currentUser){ alert('Please login first.'); return; }
+      const id = input.value.trim();
+      if(!id){ input.focus(); return; }
+      // hide old results until fetch resolves
+      results.classList.add('hidden');
+      showLoading(id);
+      try{
+        const data = await fetchTracking(id);
+        setStatus(data);
+      }catch(e){ showError('An error occurred while fetching data.'); console.error(e); }
+    }
+
+    btn.addEventListener('click', track);
+    input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') track(); });
+
+    // Optional: preload demo credentials
+    (function(){ document.getElementById('loginEmail').value = ''; })();
+
+  </script>
+</body>
+</html>
