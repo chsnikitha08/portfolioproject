@@ -1,0 +1,440 @@
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(to right, #f7f2ed, #fbe9d7);
+  color: #3a3a3a;
+  line-height: 1.6;
+}
+
+/* ---------- NAVBAR ---------- */
+.navbar {
+  position: sticky;        
+  top: 0; 
+  width: 100%; 
+  background-color: rgba(255, 246, 233, 0.95); 
+  backdrop-filter: blur(10px); 
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 5%;
+  flex-wrap: wrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);    
+}
+
+.logo {
+  font-size: clamp(1.6rem, 2.5vw, 2rem);
+  font-weight: bold;
+  color: #a9741a;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  transition: color 0.3s, transform 0.3s;
+}
+
+.nav-links a:hover {
+  color: #a9741a;
+  transform: scale(1.05);
+}
+
+.nav-links .btn {
+  background-color: #a9741a;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  transition: background 0.3s, box-shadow 0.3s, transform 0.3s;
+  box-shadow: 0 4px 12px rgba(169, 116, 26, 0.3);
+}
+
+.nav-links .btn:hover {
+  background-color: #8b6016;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(169, 116, 26, 0.5);
+}
+
+/* ---------- HERO SECTION ---------- */
+.hero {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  padding: clamp(2rem, 5vw, 5rem) 5%;
+  text-align: center;
+  gap: 20rem;
+}
+
+.hero-image img {
+  width: clamp(220px, 35vw, 420px);
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  object-position: center 20%;
+  border-radius: 50%;
+  border: 6px solid #e6d3bb;
+  display: block;
+  margin: 0 auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.hero-image img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+}
+
+.hero-content {
+  max-width: 500px;
+  text-align: left;
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeSlideUp 1.2s ease-out forwards;
+  animation-delay: 0.3s;
+}
+
+.hero-content h1 {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  margin-bottom: 0.5rem;
+  animation: fadeSlideUp 1.2s ease-out forwards;
+  animation-delay: 0.4s;
+}
+
+.hero-content h2 {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  margin-bottom: 1rem;
+  animation: fadeSlideUp 1.2s ease-out forwards;
+  animation-delay: 0.6s;
+}
+
+.highlight {
+  color: #a9741a;
+  font-weight: bold;
+}
+
+.hero-content p {
+  margin-bottom: 1.5rem;
+  color: #555;
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  animation: fadeSlideUp 1.2s ease-out forwards;
+  animation-delay: 0.8s;
+}
+
+.social-icons a {
+  text-decoration: none;
+  font-size: 1.8rem;
+  margin-right: 1rem;
+  color: #555;
+  transition: color 0.3s, transform 0.3s, text-shadow 0.3s;
+  animation: fadeSlideUp 1.2s ease-out forwards;
+  animation-delay: 1s;
+}
+
+.social-icons a:hover {
+  color: #680202;
+  transform: translateY(-4px) scale(1.1);
+  text-shadow: 0 4px 10px rgba(169, 116, 26, 0.4);
+}
+
+.letsconnect-btn {
+  display: inline-block;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #a9741a;
+  text-decoration: none;
+  position: relative;
+  letter-spacing: 1px;
+  transition: color 0.4s ease, transform 0.4s ease, text-shadow 0.4s ease;
+
+  /* Make sure it shows up */
+  opacity: 1;
+  transform: translateY(0);
+  animation: fadeInText 1.2s ease-out forwards;
+  animation-delay: 1.4s;
+
+  /* Base glowing effect */
+  text-shadow: 
+    0 0 8px rgba(169, 116, 26, 0.7),
+    0 0 15px rgba(169, 116, 26, 0.6),
+    0 0 25px rgba(169, 116, 26, 0.5);
+  
+  
+  animation: fadeInText 1.2s ease-out forwards, glowPulse 2.5s infinite alternate;
+}
+
+
+.letsconnect-btn:hover {
+  color: #680202;
+  transform: translateY(-4px) scale(1.05);
+  text-shadow: 
+    0 0 12px rgba(157, 66, 30, 0.9),
+    0 0 25px rgba(255, 184, 77, 0.8),
+    0 0 40px rgba(200, 99, 48, 0.7);
+}
+
+/* Glowing underline animation */
+.letsconnect-btn::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #6e4908, #ffb84d);
+  box-shadow: 0 0 15px rgba(170, 142, 101, 0.8);
+  transition: width 0.5s ease;
+}
+
+.letsconnect-btn:hover::after {
+  width: 100%;
+}
+
+/*  Pulsating glow keyframes */
+@keyframes glowPulse {
+  0% {
+    text-shadow:
+      0 0 8px rgba(86, 57, 6, 0.878),
+      0 0 15px rgba(169, 116, 26, 0.6),
+      0 0 25px rgba(169, 116, 26, 0.5);
+  }
+  100% {
+    text-shadow:
+      0 0 15px rgba(150, 100, 24, 0.8),
+      0 0 30px rgba(255, 184, 77, 0.7),
+      0 0 45px rgba(255, 184, 77, 0.6);
+  }
+}
+
+
+
+
+/* ✨ Keyframes for entry animation */
+@keyframes fadeInBox {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- SECTIONS ---------- */
+section {
+  padding: clamp(2rem, 5vw, 4rem) 10%;
+  text-align: center;
+  scroll-margin-top: 100px; 
+}
+
+h2 {
+  font-size: clamp(1.8rem, 3vw, 2.2rem);
+  color: #a9741a;
+  margin-bottom: 1.5rem;
+}
+
+/* ---------- EDUCATION ---------- */
+.education {
+  background-color: #fff6e9;
+  border-radius: 15px;
+  max-width: 800px;
+  margin: 0 auto 4rem auto;
+  padding: 2.5rem 3rem;
+  box-shadow: 0 8px 20px rgba(169, 116, 26, 0.2);
+  color: #5a4a1a;
+  text-align: left;
+  font-size: clamp(1rem, 2vw, 1.1rem);
+  line-height: 1.6;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.education:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(169, 116, 26, 0.3);
+}
+
+/* ---------- SKILLS ---------- */
+.skills .skill-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.skills .skill {
+  background: #fff6e9;
+  padding: 0.8rem 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  font-weight: bold;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.skills .skill:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(169, 116, 26, 0.3);
+}
+
+/* ---------- PROJECTS ---------- */
+.projects {
+  max-width: 1100px;
+  margin: 0 auto 4rem auto;
+  text-align: center;
+}
+
+.project-list {
+  
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+}
+.project-list a {
+  text-decoration: none;
+  color: inherit; 
+}
+
+.project-list a:hover {
+  text-decoration: none; 
+}
+
+
+.project {
+  text-decoration: none;
+  background-color: #fff6e9;
+  border-radius: 15px;
+  padding: 1.8rem 2.2rem;
+  box-shadow: 0 6px 18px rgba(169, 116, 26, 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: default;
+  flex: 1 1 300px;
+  max-width: 320px;
+  
+}
+
+.project:hover {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 14px 30px rgba(169, 116, 26, 0.35);
+}
+
+.project h3 {
+  color: #a9741a;
+  margin-bottom: 0.8rem;
+  font-weight: 600;
+}
+
+.project p {
+  color: #5a4a1a;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+/* ---------- FOOTER ---------- */
+.footer {
+  background-color: #a9741a;
+  color: white;
+  padding: 3rem 10%;
+  text-align: center;
+}
+
+.footer a {
+  color: white;
+  font-size: 1.5rem;
+  margin: 0 1rem;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.footer a:hover {
+  opacity: 0.7;
+  transform: translateY(-3px);
+}
+
+/* ---------- ANIMATIONS ---------- */
+@keyframes fadeSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 992px) {
+  .hero {
+    flex-direction: column;
+    text-align: center;
+    gap: 4rem;
+  }
+
+  .hero-content {
+    text-align: center;
+  }
+
+  .hero-content h1,
+  .hero-content h2,
+  .hero-content p {
+    text-align: center;
+  }
+  
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .project {
+    max-width: 90%;
+  }
+}
+
+@media (max-width: 480px) {
+  .social-icons a {
+    font-size: 1.5rem;
+  }
+}
+
+#education::before,
+#skills::before,
+#projects::before,
+#contact::before {
+  content: "";
+  display: block;
+  height: 100px; 
+  margin-top: -100px;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+
+@keyframes fadeInText {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
